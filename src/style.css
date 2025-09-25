@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+.centerFlex {
+  @apply flex justify-center items-center;
+}
+.ql-container {
+  @apply h-full;
+}
+.ql-toolbar {
+  @apply bg-white;
+}
+.ql-editor,
+.ql-container,
+.ql-toolbar {
+  @apply border-0!;
+}
