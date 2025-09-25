@@ -2,7 +2,14 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { useEffect, useRef } from "react";
 
-function Page({ ...props }) {
+function Page({
+  id,
+  ...props
+}: {
+  id?: number;
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
 
@@ -42,7 +49,9 @@ function Page({ ...props }) {
 
   return (
     <div className="h-full w-full flex flex-col " {...props}>
-      <div ref={editorRef} className="h-full "></div>
+      <div ref={editorRef} id={JSON.stringify(id)} className="h-full ">
+        {props.children}
+      </div>
     </div>
   );
 }

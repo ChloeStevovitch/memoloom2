@@ -14,3 +14,28 @@
 .ql-toolbar {
   @apply border-0!;
 }
+.page {
+  @apply absolute inset-0  h-full bg-amber-50  via-0% via-amber-900/70  to-10% to-transparent;
+}
+
+.pageContainer {
+  @apply backface-hidden h-full w-full relative transition-transform duration-1000 aspect-3/4 z-0;
+}
+.pageContainer.right {
+  @apply origin-left;
+  .recto {
+    @apply bg-gradient-to-r  z-10;
+  }
+  .verso {
+    @apply bg-gradient-to-l -rotate-y-180 z-0;
+  }
+}
+.pageContainer.left {
+  @apply origin-right;
+  .recto {
+    @apply bg-gradient-to-l;
+  }
+  .verso {
+    @apply bg-gradient-to-r -rotate-y-180;
+  }
+}
