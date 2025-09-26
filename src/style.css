@@ -17,9 +17,11 @@
 .page {
   @apply absolute inset-0  h-full bg-amber-50  via-0% via-amber-900/70  to-10% to-transparent;
 }
-
+.sheetContainer {
+  @apply h-full aspect-3/4 relative;
+}
 .pageContainer {
-  @apply backface-hidden h-full w-full relative transition-transform duration-1000 aspect-3/4 z-0;
+  @apply absolute backface-hidden h-full w-full  transition-transform duration-1000  z-0;
 }
 .pageContainer.right {
   @apply origin-left;
