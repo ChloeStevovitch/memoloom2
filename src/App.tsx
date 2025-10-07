@@ -4,7 +4,7 @@ import Binding from "./components/Binding";
 
 function App() {
   const [currentPair, setCurrentPair] = useState<number>(0);
-  const nbSheets = 5;
+  const nbSheets = 1;
   const [zIndexTable, setZIndexTable] = useState<number[]>(
     Array.from({ length: nbSheets }, (_, i) => nbSheets - i)
   );
@@ -80,15 +80,15 @@ function App() {
       </div>
       <div className="h-[calc(100%-50px)] w-full fixed bg-yellow-200 top-[50px] ">
         <div
-          className="sheetContainer absolute  h-[300px] top-[calc(50%-650px/2)] left-[50%] "
-          onClick={() => {
-            setSelectedSide("right");
-            setZIndexTable((prev) => {
-              const newArray = [...prev];
-              newArray[currentPair] = newArray[currentPair - 1] + 1;
-              return newArray;
-            });
-          }}
+          className="sheetContainer absolute top-[calc(50%-650px/2)] left-[50%] "
+          // onClick={() => {
+          //   setSelectedSide("right");
+          //   setZIndexTable((prev) => {
+          //     const newArray = [...prev];
+          //     newArray[currentPair] = newArray[currentPair - 1] + 1;
+          //     return newArray;
+          //   });
+          // }}
         >
           <Binding className="left-[-100px]" />
           {Array.from({ length: nbSheets }, (_, index) => (
