@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ----------- Général ----------- */
 .centerFlex {
   @apply flex justify-center items-center;
 }
@@ -14,33 +15,73 @@
 .ql-toolbar {
   @apply border-0!;
 }
+
+/* ----------- Pages ----------- */
 .page {
-  @apply absolute inset-0  h-full bg-amber-50  via-0% via-amber-900/70  to-10% to-transparent;
+  @apply absolute inset-0 h-full  bg-amber-50  via-0% via-amber-900/70  to-10% to-transparent;
+  backface-visibility: hidden; /* <- cache la face quand elle est derrière */
 }
 
+/* ----------- Conteneur principal ----------- */
 .sheetContainer {
   @apply h-[650px] aspect-3/4;
 }
 
+/* ----------- Conteneur d'une page ----------- */
 .pageContainer {
-  @apply relative h-full w-full  transition-transform duration-1000 z-0;
-  transform-style: preserve-3d;
+  @apply absolute h-full w-full transition-transform duration-1000 z-0;
+  transform-style: preserve-3d; /* <- essentiel pour le flip 3D */
+  perspective: 2000px; /* donne un peu de profondeur au flip */
 }
+
+/* ----------- Côté droit ----------- */
 .pageContainer.right {
   @apply origin-left;
-  .recto {
-    @apply bg-gradient-to-r  z-10;
-  }
-  .verso {
-    @apply bg-gradient-to-l -rotate-y-180 z-0;
-  }
 }
+
+.pageContainer.right .recto {
+  @apply bg-gradient-to-r z-10;
+  transform: rotateY(0deg);
+}
+
+.pageContainer.right .verso {
+  @apply bg-gradient-to-l z-0;
+  transform: rotateY(180deg);
+}
+
+/* ----------- Côté gauche ----------- */
 .pageContainer.left {
   @apply origin-right;
-  .recto {
-    @apply bg-gradient-to-l;
-  }
-  .verso {
-    @apply bg-gradient-to-r -rotate-y-180;
-  }
+}
+
+.pageContainer.left .recto {
+  @apply bg-gradient-to-l;
+  transform: rotateY(0deg);
+}
+
+.pageContainer.left .verso {
+  @apply bg-gradient-to-r;
+  transform: rotateY(180deg);
+}
+
+/* ----------- Flip global ----------- */
+.pageContainer.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+*/ .pageContainer {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.pageContainer.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.page.recto {
+  transform: rotateY(0deg);
+}
+
+.page.verso {
+  transform: rotateY(180deg);
 }

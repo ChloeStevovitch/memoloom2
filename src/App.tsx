@@ -4,7 +4,7 @@ import Binding from "./components/Binding";
 
 function App() {
   const [currentPair, setCurrentPair] = useState<number>(0);
-  const nbSheets = 1;
+  const nbSheets = 5;
   const [zIndexTable, setZIndexTable] = useState<number[]>(
     Array.from({ length: nbSheets }, (_, i) => nbSheets - i)
   );
