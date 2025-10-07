@@ -18,10 +18,17 @@
   @apply absolute inset-0  h-full bg-amber-50  via-0% via-amber-900/70  to-10% to-transparent;
 }
 .sheetContainer {
-  @apply h-full aspect-3/4 relative;
+  @apply h-[650px] aspect-3/4;
 }
 .pageContainer {
   @apply absolute backface-hidden h-full w-full  transition-transform duration-1000  z-0;
+  transform-style: preserve-3d;
+}
+.pointer-events-auto {
+  pointer-events: auto;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
 }
 .pageContainer.right {
   @apply origin-left;

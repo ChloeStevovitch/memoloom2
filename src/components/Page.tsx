@@ -2,20 +2,28 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { useEffect, useRef } from "react";
 
-function Page({
-  id,
-  ...props
-}: {
-  id?: number;
-  children?: React.ReactNode;
-  className?: string;
-}) {
+interface CustomFocusEvent {
+  timestamp: number;
+  pageId?: string;
+}
+
+interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: any;
+  focusOnVersoEvent?: CustomFocusEvent;
+}
+
+function Page({ focusOnVersoEvent, ...props }: PageProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
 
   useEffect(() => {
-    let isCleanedUp = false;
+    if (focusOnVersoEvent && quillRef.current) {
+      quillRef.current.focus();
+    }
+  }, [focusOnVersoEvent]);
 
+  useEffect(() => {
+    let isCleanedUp = false;
     const initializeQuill = () => {
       if (editorRef.current && !quillRef.current && !isCleanedUp) {
         quillRef.current = new Quill(editorRef.current, {
@@ -49,7 +57,7 @@ function Page({
 
   return (
     <div className="h-full w-full flex flex-col " {...props}>
-      <div ref={editorRef} id={JSON.stringify(id)} className="h-full ">
+      <div ref={editorRef} className="h-full ">
         {props.children}
       </div>
     </div>

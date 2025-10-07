@@ -2,9 +2,7 @@ import { cn } from "../main";
 import Page from "./Page";
 
 interface SheetRightProps {
-  currentPair: number;
-  isFlippingTo: number;
-  handleFlipEndPage: () => void;
+  selected: boolean;
   children?: React.ReactNode;
   id: number;
   className?: string;
@@ -12,29 +10,30 @@ interface SheetRightProps {
   isFlipped: boolean;
 }
 
-function SheetRight({
-  id,
-  isFlippingTo,
-  zIndex,
-  isFlipped,
-  handleFlipEndPage,
-}: SheetRightProps) {
+function SheetRight({ id, zIndex, selected, isFlipped }: SheetRightProps) {
   return (
     <div
-      onTransitionEnd={handleFlipEndPage}
-      className={cn(
-        "pageContainer",
-        "right",
-        isFlippingTo > id ? "rotate-y-180 " : ""
-      )}
+      className={cn("pageContainer ", "right", isFlipped && "rotate-y-180 ")}
       style={{
         zIndex: zIndex,
       }}
     >
-      <Page id={id + 2} className="page verso">
+      <Page
+        id={`page-verso-${JSON.stringify(id)}`}
+        className={cn(
+          "page verso ",
+          isFlipped && selected && "outline-blue-400 outline-2 "
+        )}
+      >
         {id} verso {isFlipped}
       </Page>
-      <Page id={id + 1} className="page recto">
+      <Page
+        id={`page-recto-${JSON.stringify(id)}`}
+        className={cn(
+          "page recto ",
+          !isFlipped && selected && "outline-2 outline-blue-400  "
+        )}
+      >
         {id} recto
       </Page>
     </div>
