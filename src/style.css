@@ -46,32 +46,172 @@
   @apply origin-right;
 }
 
+/* =====================================================
+   PAGES - EFFETS AVANCÉS
+   ===================================================== */
+
 .page {
-  @apply bg-amber-50 via-0% via-amber-900/50 to-15% to-transparent  absolute inset-0 h-full backface-hidden;
+  @apply absolute inset-0 h-full backface-hidden;
+  /* Texture papier subtile */
 }
+
 .page.recto {
-  --p: 10px;
-  clip-path: polygon(0 var(--p), 0 calc(100% - var(--p)), 100% 100%, 100% 0);
-  @apply z-10 rotate-y-0   bg-gradient-to-r;
+  --corner-size: 12px;
+  clip-path: polygon(
+    0 var(--corner-size),
+    var(--corner-size) 0,
+    100% 0,
+    100% 100%,
+    var(--corner-size) 100%,
+    0 calc(100% - var(--corner-size))
+  );
+  @apply z-10;
+  transform: rotateY(0deg);
+  background: 
+    /* Grain de papier */ radial-gradient(
+      circle at 25% 25%,
+      #f5f5dc 1px,
+      transparent 1px
+    ),
+    radial-gradient(circle at 75% 75%, #f0f0e8 1px, transparent 1px),
+    /* Couleur de base */ linear-gradient(145deg, #faf8f3, #f5f2ea);
+  background-size: 20px 20px, 15px 15px, 100% 100%;
+
+  /* Ombre portée douce */
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  /* Bordure subtile */
+  border: 1px solid rgba(139, 69, 19, 0.1);
+  /* Gradient directionnel pour simulation de reliure */
+  background-image: 
+    /* Texture papier */ radial-gradient(
+      circle at 25% 25%,
+      #f5f5dc 1px,
+      transparent 1px
+    ),
+    radial-gradient(circle at 75% 75%, #f0f0e8 1px, transparent 1px),
+    /* Ombrage reliure */
+      linear-gradient(
+        to right,
+        rgba(139, 69, 19, 0.08) 0%,
+        transparent 8%,
+        transparent 92%,
+        rgba(139, 69, 19, 0.04) 100%
+      ),
+    /* Base */ linear-gradient(145deg, #faf8f3, #f5f2ea);
 }
+
 .page.verso {
-  --p: 10px;
-  clip-path: polygon(100% var(--p), 100% calc(100% - var(--p)), 0 100%, 0 0);
-  @apply z-0 rotate-y-180   bg-gradient-to-l;
+  --corner-size: 12px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--corner-size)) 0,
+    100% var(--corner-size),
+    100% calc(100% - var(--corner-size)),
+    calc(100% - var(--corner-size)) 100%,
+    0 100%
+  );
+  @apply z-0 rotate-y-180;
+  /* Gradient inversé pour le verso */
+  background-image: 
+    /* Texture papier */ radial-gradient(
+      circle at 25% 25%,
+      #f5f5dc 1px,
+      transparent 1px
+    ),
+    radial-gradient(circle at 75% 75%, #f0f0e8 1px, transparent 1px),
+    /* Ombrage reliure inversé */
+      linear-gradient(
+        to left,
+        rgba(139, 69, 19, 0.08) 0%,
+        transparent 8%,
+        transparent 92%,
+        rgba(139, 69, 19, 0.04) 100%
+      ),
+    /* Base */ linear-gradient(225deg, #faf8f3, #f5f2ea);
 }
+
+/* =====================================================
+   EFFETS DE LUMIÈRE ET D'OMBRE
+   ===================================================== */
+
+/* Éclairage dynamique pendant le flip */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 45%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.3) 55%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all 0.6s ease;
+  pointer-events: none;
+}
+
+/* Ombrage réaliste */
 .page::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse at 40% 50%,
-    rgba(255, 255, 255, 0.15),
-    rgba(0, 0, 0, 0.1)
-  );
+  background: 
+    /* Ombrage central */ radial-gradient(
+      ellipse 60% 80% at 40% 50%,
+      transparent 30%,
+      rgba(139, 69, 19, 0.08) 60%,
+      rgba(139, 69, 19, 0.15) 100%
+    ),
+    /* Ombrage de bordure */
+      linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.05) 0%,
+        transparent 15%,
+        transparent 85%,
+        rgba(0, 0, 0, 0.05) 100%
+      );
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+
+/* Activation des effets pendant la rotation */
+.pageContainer.rotate-y-180 .page::before {
+  opacity: 1;
+  transform: translateX(100%);
 }
 
 .pageContainer.rotate-y-180 .page::after {
-  opacity: 0.8;
+  opacity: 1;
+}
+
+/* Effet de courbure subtile */
+.pageContainer {
+  @apply absolute h-full w-full transition-transform duration-1000 ease-in-out z-0;
+  transform-style: preserve-3d;
+  perspective: 1200px;
+
+  /* Animation plus fluide avec bezier personnalisé */
+  transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* =====================================================
+   EFFETS HOVER ET INTERACTIONS
+   ===================================================== */
+
+.pageContainer:hover .page {
+  box-shadow: 0 4px 16px rgba(139, 69, 19, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Effet de surbrillance au survol */
+.pageContainer:hover .page::before {
+  opacity: 0.3;
+  transform: translateX(0);
 }
