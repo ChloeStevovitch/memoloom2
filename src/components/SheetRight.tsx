@@ -1,42 +1,43 @@
 import { cn } from "../main";
 import Page from "./Page";
 
-interface SheetRightProps {
-  selected: boolean;
+interface SheetRightProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
-  id: number;
-  className?: string;
   zIndex: number;
   isFlipped: boolean;
+  isLast?: boolean;
+  isFirst?: boolean;
+  sheetId: number;
 }
 
-function SheetRight({ id, zIndex, selected, isFlipped }: SheetRightProps) {
+function SheetRight({
+  zIndex,
+  isFlipped,
+  sheetId,
+  isFirst,
+  isLast,
+  ...props
+}: SheetRightProps) {
   return (
     <div
-      className={cn("pageContainer right", isFlipped && "rotate-y-180")}
+      {...props}
+      className={cn(
+        "pageContainer right",
+        isFlipped && "rotate-y-180",
+        props.className
+      )}
       style={{
         zIndex,
       }}
     >
-      <Page
-        id={`page-recto-${id}`}
-        className={cn(
-          "page recto",
-          selected && !isFlipped && "outline-2 outline-blue-400"
-        )}
-      >
-        {id} recto
-      </Page>
-
-      <Page
-        id={`page-verso-${id}`}
-        className={cn(
-          "page verso",
-          selected && isFlipped && "outline-2 outline-blue-400"
-        )}
-      >
-        {id} verso
-      </Page>
+      {["recto", "verso"].map((side) => (
+        <Page
+          key={`age-${side}-${sheetId}`}
+          className={cn("page", side, (isFirst || isLast) && "cover")}
+        >
+          {sheetId} {side}
+        </Page>
+      ))}
     </div>
   );
 }

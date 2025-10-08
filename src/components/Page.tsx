@@ -1,26 +1,15 @@
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { useEffect, useRef } from "react";
-
-interface CustomFocusEvent {
-  timestamp: number;
-  pageId?: string;
-}
+import { cn } from "../main";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   children: any;
-  focusOnVersoEvent?: CustomFocusEvent;
 }
 
-function Page({ focusOnVersoEvent, ...props }: PageProps) {
+function Page({ className, ...props }: PageProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
-
-  useEffect(() => {
-    if (focusOnVersoEvent && quillRef.current) {
-      quillRef.current.focus();
-    }
-  }, [focusOnVersoEvent]);
 
   useEffect(() => {
     let isCleanedUp = false;
@@ -56,7 +45,7 @@ function Page({ focusOnVersoEvent, ...props }: PageProps) {
   }, []);
 
   return (
-    <div className="h-full w-full flex flex-col " {...props}>
+    <div className={cn(" h-full w-full flex flex-col", className)} {...props}>
       <div ref={editorRef} className="h-full ">
         {props.children}
       </div>
@@ -65,5 +54,3 @@ function Page({ focusOnVersoEvent, ...props }: PageProps) {
 }
 
 export default Page;
-
-/* Styles pour que Quill prenne tout l'espace */
