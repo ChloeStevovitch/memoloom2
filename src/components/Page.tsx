@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import { cn } from "../main";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: any;
+  content?: string;
 }
 
-function Page({ className, ...props }: PageProps) {
+function Page({ className, content, ...props }: PageProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
 
@@ -26,6 +26,11 @@ function Page({ className, ...props }: PageProps) {
           placeholder: "Compose an epic...",
           theme: "snow",
         });
+
+        // Définir le contenu initial si fourni
+        if (content && content.length && quillRef.current) {
+          quillRef.current.setText(content);
+        }
       }
     };
 
@@ -44,11 +49,16 @@ function Page({ className, ...props }: PageProps) {
     };
   }, []);
 
+  // Effet pour mettre à jour le contenu quand il change
+  useEffect(() => {
+    if (!!content && content.length && quillRef.current) {
+      quillRef.current.setText(content);
+    }
+  }, [content]);
+
   return (
     <div className={cn(" h-full w-full flex flex-col", className)} {...props}>
-      <div ref={editorRef} className="h-full ">
-        {props.children}
-      </div>
+      <div ref={editorRef} className="h-full " />
     </div>
   );
 }

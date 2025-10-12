@@ -12,7 +12,7 @@ function Binding({ className, ...props }: BindingProps) {
       )}
       {...props}
     >
-      <div className="bg-amber-900/80 h-[calc(100%-20px)] w-[2px]"></div>
+      <div className="bg-amber-900/80 h-[calc(100%-22px)] w-[1px]"></div>
     </div>
   );
 }

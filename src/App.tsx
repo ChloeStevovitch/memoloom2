@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 import SheetRight from "./components/SheetRight";
 import Binding from "./components/Binding";
+import { useBook } from "./context/bookContext";
 
 function App() {
   const [currentPair, setCurrentPair] = useState<number>(1);
-  const nbSheets = 5;
-  const [zIndexTable, setZIndexTable] = useState<number[]>(
-    Array.from({ length: nbSheets }, (_, i) => nbSheets - i)
-  );
+  const { books, loading } = useBook();
+  const [nbSheets, setNbSheets] = useState<number>(0);
+  const [zIndexTable, setZIndexTable] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (books && books.length > 0) {
+      const newNbSheets = Math.ceil(books[0].content.length / 2 + 1);
+      setNbSheets(newNbSheets);
+      setZIndexTable(
+        Array.from({ length: newNbSheets }, (_, i) => newNbSheets - i)
+      );
+    }
+  }, [books]);
   const [flipDirection, setFlipDirection] = useState<"left" | "right" | null>(
     null
   );
@@ -58,6 +68,22 @@ function App() {
     setFlipDirection(null);
   }, [flipDirection]);
 
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        Loading books...
+      </div>
+    );
+  }
+
+  if (!books || books.length === 0) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        No books available
+      </div>
+    );
+  }
+
   return (
     <div className=" h-screen w-screen ">
       <div className="bg-blue-200 fixed top-0 h-[50px] w-full flex items-center px-4">
@@ -77,6 +103,10 @@ function App() {
             go right
           </button>
         </span>
+        <span className="text-sm">
+          Book: {books[0]?.title} - {books[0]?.content.length} pages -{" "}
+          {nbSheets} sheets
+        </span>
       </div>
       <div className="h-[calc(100%-50px)] w-full fixed bg-yellow-200 top-[50px] ">
         <div className="sheetContainer absolute top-[calc(50%-650px/2)] left-[50%] ">
@@ -89,6 +119,8 @@ function App() {
               isLast={index === nbSheets - 1}
               sheetId={index}
               zIndex={zIndexTable[index]}
+              pageContentRecto={books[0]?.content[index * 2]?.text}
+              pageContentVerso={books[0]?.content[index * 2 + 1]?.text}
               isFlipped={currentPair > index}
             />
           ))}

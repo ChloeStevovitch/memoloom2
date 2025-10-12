@@ -1,153 +1,105 @@
 @import "tailwindcss";
 
-/* =====================================================
-   UTILITAIRES GÉNÉRAUX
-   ===================================================== */
+:root {
+  --radial-gradient-25: radial-gradient(
+    circle at 25% 25%,
+    #f5f5dc 1px,
+    transparent 1px
+  );
+  --radial-gradient-75: radial-gradient(
+    circle at 75% 75%,
+    #f0f0e8 1px,
+    transparent 1px
+  );
+  --linear-gradient-left: linear-gradient(
+    to left,
+    rgba(139, 69, 19, 0.08) 0%,
+    transparent 8%,
+    transparent 92%,
+    rgba(139, 69, 19, 0.04) 100%
+  );
+  --linear-gradient-right: linear-gradient(
+    to right,
+    rgba(139, 69, 19, 0.08) 0%,
+    transparent 8%,
+    transparent 92%,
+    rgba(139, 69, 19, 0.04) 100%
+  );
+  --base: linear-gradient(145deg, #faf8f3, #f5f2ea);
+  --base-inversed: linear-gradient(225deg, #faf8f3, #f5f2ea);
 
-.centerFlex {
-  @apply flex justify-center items-center;
-}
+  .centerFlex {
+    @apply flex justify-center items-center;
+  }
 
-/* =====================================================
-   ÉDITEUR QUILL
-   ===================================================== */
+  .ql-container {
+    @apply h-full;
+  }
 
-.ql-container {
-  @apply h-full;
-}
+  .ql-toolbar {
+    @apply hidden;
+  }
 
-.ql-toolbar {
-  @apply hidden;
-}
+  .ql-editor,
+  .ql-container,
+  .ql-toolbar {
+    @apply !border-0;
+  }
 
-.ql-editor,
-.ql-container,
-.ql-toolbar {
-  @apply border-0!;
-}
+  .sheetContainer {
+    @apply h-[650px] aspect-3/4;
+  }
 
-/* =====================================================
-   CONTENEURS PRINCIPAUX
-   ===================================================== */
+  .pageContainer {
+    @apply absolute h-full w-full transition-transform transform-3d duration-1000 ease-in-out z-0 perspective-[2000px];
+  }
 
-.sheetContainer {
-  @apply h-[650px] aspect-3/4;
-}
+  .pageContainer.right {
+    @apply origin-left;
+  }
+  .pageContainer.left {
+    @apply origin-right;
+  }
 
-.pageContainer {
-  @apply absolute h-full w-full transition-transform duration-1000 ease-in-out z-0 perspective-[2000px];
-  transform-style: preserve-3d;
-}
+  .page {
+    @apply absolute inset-0 h-full backface-hidden;
+    @apply rounded-2xl border border-amber-900/10;
+    @apply shadow-[0_2px_8px_rgba(139,69,19,0.15)];
+    background-size: 20px 20px, 15px 15px, 100% 100%, 100% 100%;
+  }
 
-.pageContainer.right {
-  @apply origin-left;
-}
-.pageContainer.left {
-  @apply origin-right;
-}
+  .page.recto {
+    @apply z-10 rotate-y-0;
+    background: var(--radial-gradient-25), var(--radial-gradient-75),
+      var(--linear-gradient-right), var(--base);
+  }
 
-/* =====================================================
-   PAGES - EFFETS AVANCÉS
-   ===================================================== */
+  .page.verso {
+    @apply z-0 rotate-y-180;
+    background: var(--radial-gradient-25), var(--radial-gradient-75),
+      var(--linear-gradient-left), var(--base-inversed);
+  }
 
-.page {
-  @apply absolute inset-0 h-full backface-hidden;
-  /* Texture papier subtile */
-}
-
-.page.recto {
-  @apply z-10 rotate-y-0 rounded-2xl;
-  background: 
-    /* Grain de papier */ radial-gradient(
-      circle at 25% 25%,
-      #f5f5dc 1px,
-      transparent 1px
-    ),
-    radial-gradient(circle at 75% 75%, #f0f0e8 1px, transparent 1px),
-    /* Couleur de base */ linear-gradient(145deg, #faf8f3, #f5f2ea);
-  background-size: 20px 20px, 15px 15px, 100% 100%;
-
-  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-
-  /* Bordure subtile */
-  border: 1px solid rgba(139, 69, 19, 0.1);
-  /* Gradient directionnel pour simulation de reliure */
-  background-image: 
-    /* Texture papier */ radial-gradient(
-      circle at 25% 25%,
-      #f5f5dc 1px,
-      transparent 1px
-    ),
-    radial-gradient(circle at 75% 75%, #f0f0e8 1px, transparent 1px),
-    /* Ombrage reliure */
-      linear-gradient(
-        to right,
-        rgba(139, 69, 19, 0.08) 0%,
-        transparent 8%,
-        transparent 92%,
-        rgba(139, 69, 19, 0.04) 100%
-      ),
-    /* Base */ linear-gradient(145deg, #faf8f3, #f5f2ea);
-}
-
-.page.verso {
-  @apply z-0 rotate-y-180 rounded-2xl;
-  /* Gradient inversé pour le verso */
-  background-image: 
-    /* Texture papier */ radial-gradient(
-      circle at 25% 25%,
-      #f5f5dc 1px,
-      transparent 1px
-    ),
-    radial-gradient(circle at 75% 75%, #f0f0e8 1px, transparent 1px),
-    /* Ombrage reliure inversé */
-      linear-gradient(
-        to left,
-        rgba(139, 69, 19, 0.08) 0%,
-        transparent 8%,
-        transparent 92%,
-        rgba(139, 69, 19, 0.04) 100%
-      ),
-    /* Base */ linear-gradient(225deg, #faf8f3, #f5f2ea);
-}
-
-/* =====================================================
+  /* =====================================================
    EFFETS DE LUMIÈRE ET D'OMBRE
    ===================================================== */
 
-/* Éclairage dynamique pendant le flip */
-.page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 45%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0.3) 55%,
-    transparent 100%
-  );
-  opacity: 0;
-  transform: translateX(-100%);
-  transition: all 0.6s ease;
-  pointer-events: none;
-}
+  /* Éclairage dynamique pendant le flip */
+  .page::before {
+    @apply content-[''] absolute inset-0 opacity-0 pointer-events-none rounded-2xl;
+    @apply -translate-x-full transition-all duration-[600ms] ease-out;
+  }
 
-/* Ombrage réaliste */
-.page::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: 
-    /* Ombrage central */ radial-gradient(
-      ellipse 60% 80% at 40% 50%,
-      transparent 30%,
-      rgba(139, 69, 19, 0.08) 60%,
-      rgba(139, 69, 19, 0.15) 100%
-    ),
-    /* Ombrage de bordure */
+  .page::after {
+    @apply content-[''] absolute inset-0 opacity-0 pointer-events-none rounded-2xl;
+    @apply transition-opacity duration-[800ms] ease-out;
+
+    background: radial-gradient(
+        ellipse 60% 80% at 40% 50%,
+        transparent 30%,
+        rgba(139, 69, 19, 0.08) 60%,
+        rgba(139, 69, 19, 0.15) 100%
+      ),
       linear-gradient(
         45deg,
         rgba(0, 0, 0, 0.05) 0%,
@@ -155,77 +107,46 @@
         transparent 85%,
         rgba(0, 0, 0, 0.05) 100%
       );
-  opacity: 0;
-  transition: opacity 0.8s ease;
-  pointer-events: none;
-}
+  }
 
-/* Activation des effets pendant la rotation */
-.pageContainer.rotate-y-180 .page::before {
-  opacity: 1;
-  transform: translateX(100%);
-}
+  .pageContainer.rotate-y-180 .page::before {
+    @apply opacity-100 translate-x-full;
+  }
 
-.pageContainer.rotate-y-180 .page::after {
-  opacity: 1;
-}
+  .pageContainer.rotate-y-180 .page::after {
+    @apply opacity-100;
+  }
 
-/* Effet de courbure subtile */
-.pageContainer {
-  @apply absolute h-full w-full transition-transform duration-1000 ease-in-out z-0;
-  transform-style: preserve-3d;
-  perspective: 1200px;
+  /* Effet de courbure subtile */
+  .pageContainer {
+    @apply absolute h-full w-full z-0;
+    @apply transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)];
+    @apply transform-3d perspective-dramatic;
+  }
 
-  /* Animation plus fluide avec bezier personnalisé */
-  transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* =====================================================
+  /* =====================================================
    EFFETS HOVER ET INTERACTIONS
    ===================================================== */
+  /* 
+  .pageContainer:hover .page::before {
+    @apply opacity-30 translate-x-0;
+  } */
 
-.pageContainer:hover .page {
-  box-shadow: 0 4px 16px rgba(139, 69, 19, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  transition: box-shadow 0.3s ease;
-}
+  .page.recto.cover,
+  .page.verso.cover {
+    @apply border-amber-900/30;
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(139, 69, 19, 0.3) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 70% 70%,
+        rgba(160, 82, 45, 0.2) 1px,
+        transparent 1px
+      ),
+      linear-gradient(145deg, #8b4513, #a0522d) !important;
 
-/* Effet de surbrillance au survol */
-.pageContainer:hover .page::before {
-  opacity: 0.3;
-  transform: translateX(0);
-}
-
-/* =====================================================
-   COUVERTURES DE LIVRE
-   ===================================================== */
-
-.cover {
-  /* Couleur plus foncée pour la couverture */
-  background: linear-gradient(145deg, #8b4513, #a0522d) !important;
-
-  /* Texture différente pour simuler du carton */
-  background-image: 
-    /* Texture grain de cuir */ radial-gradient(
-      circle at 30% 30%,
-      rgba(139, 69, 19, 0.3) 1px,
-      transparent 1px
-    ),
-    radial-gradient(
-      circle at 70% 70%,
-      rgba(160, 82, 45, 0.2) 1px,
-      transparent 1px
-    ),
-    /* Base */ linear-gradient(145deg, #8b4513, #a0522d) !important;
-  background-size: 8px 8px, 12px 12px, 100% 100%;
-
-  /* Ombre plus prononcée */
-  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-
-  /* Bordure plus épaisse */
-  border: 2px solid rgba(139, 69, 19, 0.3);
-
-  /* Coins moins arrondis pour un look plus rigide */
-  --corner-size: 8px;
+    background-size: 8px 8px, 12px 12px, 100% 100%;
+  }
 }

@@ -8,6 +8,8 @@ interface SheetRightProps extends React.HTMLAttributes<HTMLDivElement> {
   isLast?: boolean;
   isFirst?: boolean;
   sheetId: number;
+  pageContentRecto?: string;
+  pageContentVerso?: string;
 }
 
 function SheetRight({
@@ -16,6 +18,8 @@ function SheetRight({
   sheetId,
   isFirst,
   isLast,
+  pageContentRecto,
+  pageContentVerso,
   ...props
 }: SheetRightProps) {
   return (
@@ -34,9 +38,8 @@ function SheetRight({
         <Page
           key={`age-${side}-${sheetId}`}
           className={cn("page", side, (isFirst || isLast) && "cover")}
-        >
-          {sheetId} {side}
-        </Page>
+          content={side === "recto" ? pageContentRecto : pageContentVerso}
+        />
       ))}
     </div>
   );
