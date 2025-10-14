@@ -1,4 +1,5 @@
 import React, {
+  cloneElement,
   createContext,
   useCallback,
   useContext,
@@ -7,7 +8,8 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import bookServiceHttp from "../service/BookServiceHttp";
+import bookServiceHttp from "../service/bookServiceHttp";
+import usePrevious from "../hooks/usePrevious";
 
 interface BookContextType {
   bookLength: number | undefined;
@@ -20,14 +22,13 @@ interface BookContextType {
   setFlipDirection: React.Dispatch<
     React.SetStateAction<"left" | "right" | null>
   >;
-  selectedSide: "right" | "left" | null;
-  setSelectedSide: React.Dispatch<
-    React.SetStateAction<"right" | "left" | null>
-  >;
+
   getRectoIndexFromSheetId: (sheetId: number) => number;
   getVersoIndexFromSheetId: (sheetId: number) => number;
   getCurrentPair: number;
   getNbSheets: (bookLength: number | undefined) => number;
+  activePage: number | undefined;
+  setActivePage: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 const BookContext = createContext<BookContextType | undefined>(undefined);
@@ -43,9 +44,8 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [flipDirection, setFlipDirection] = useState<"left" | "right" | null>(
     null
   );
-  const [selectedSide, setSelectedSide] = useState<"right" | "left" | null>(
-    null
-  );
+  const [activePage, setActivePage] = useState<number | undefined>(undefined);
+  const prevActivePage = usePrevious({ activePage });
 
   const getCurrentPair = useMemo(
     () => activeRectoSheet / 2,
@@ -59,19 +59,6 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
       return Math.floor(bookLength / 2) + 2;
     }
   };
-  const selectQuill = () => {
-    const pageId = `page-verso-${JSON.stringify(activeRectoSheet - 1)}`;
-    const sheet = document.getElementById(pageId) as any;
-    const quill = sheet?.getElementsByClassName("ql-editor")[0];
-    if (quill) {
-      quill.click();
-    }
-  };
-  useEffect(() => {
-    if (selectedSide === "left") {
-      selectQuill();
-    }
-  }, [selectedSide]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,8 +89,11 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   }, [fetchBookLength]);
 
   useEffect(() => {
-    setSelectedSide(null);
     if (flipDirection === null) return;
+    const toolbarContainer = document.getElementById("toolbar-container");
+    if (toolbarContainer) {
+      toolbarContainer.replaceChildren();
+    }
     const direction = flipDirection;
 
     let newArray1: any = [];
@@ -137,6 +127,30 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     setFlipDirection(null);
   }, [flipDirection]);
 
+  useEffect(() => {
+    if (prevActivePage?.activePage === activePage) return;
+    if (activePage === undefined) {
+      const toolbarContainer = document.getElementById("toolbar-container");
+      if (toolbarContainer) {
+        toolbarContainer.replaceChildren();
+      }
+      return;
+    }
+    const toolbar = document.getElementById(
+      "page-" + (activePage ?? "") + "-toolbar"
+    );
+    console.log(activePage);
+    if (toolbar) {
+      var toolbarCopy = toolbar?.cloneNode(true);
+      const toolbarContainer = document.getElementById("toolbar-container");
+      if (toolbarContainer) {
+        toolbarContainer.replaceChildren();
+        toolbarContainer.appendChild(toolbarCopy);
+        console.log("Toolbar updated");
+      }
+    }
+  }, [activePage]);
+
   const value: BookContextType = {
     loading,
     error,
@@ -150,8 +164,8 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     flipDirection,
     getNbSheets,
     setFlipDirection,
-    selectedSide,
-    setSelectedSide,
+    activePage,
+    setActivePage,
   };
 
   return <BookContext.Provider value={value}>{children}</BookContext.Provider>;

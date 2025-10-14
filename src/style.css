@@ -32,12 +32,13 @@
     @apply flex justify-center items-center;
   }
 
-  .ql-container {
-    @apply h-full;
+  .desk {
+    background-image: url("src/assets/images/wood-texture.jpg");
+    background-size: cover;
   }
 
-  .ql-toolbar {
-    @apply hidden;
+  .ql-container {
+    @apply h-full;
   }
 
   .ql-editor,
@@ -45,7 +46,9 @@
   .ql-toolbar {
     @apply !border-0;
   }
-
+  .pageContainer .ql-toolbar {
+    @apply hidden;
+  }
   .sheetContainer {
     @apply h-[650px] aspect-3/4;
   }

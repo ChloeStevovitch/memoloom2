@@ -39,16 +39,18 @@ function SheetRight({
         <PageProvider
           key={`page-provider-${side === "recto" ? rectoId : versoId}`}
         >
-          <Page
-            key={`page-${side === "recto" ? rectoId : versoId}`}
-            visible={
-              side === "recto"
-                ? rectoId === activeRectoSheet
-                : versoId === activeRectoSheet - 1
-            }
-            index={side === "recto" ? rectoId : versoId}
-            className={cn("page", side, (isFirst || isLast) && "cover")}
-          />
+          {versoId > 0 && (
+            <Page
+              key={`page-${side === "recto" ? rectoId : versoId}`}
+              visible={
+                side === "recto"
+                  ? rectoId === activeRectoSheet
+                  : versoId === activeRectoSheet - 1
+              }
+              index={side === "recto" ? rectoId : versoId}
+              className={cn("page", side, (isFirst || isLast) && "cover")}
+            />
+          )}
         </PageProvider>
       ))}
     </div>

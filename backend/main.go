@@ -23,8 +23,8 @@ type user struct {
 }
 
 var pages = map[int]page{
-	0:  {HTML: "TITRE page 0 sheet 0 "},
-	1:  {HTML: "Introduction to Go page 1 sheet 0 "},
+	0:  {HTML: "TITRE"},
+	1:  {HTML: " "},
 	2:  {HTML: "Variables and Types page 2 sheet 1"},
 	3:  {HTML: "Control Structures page 3 sheet 1"},
 	4:  {HTML: "Functions page 4 sheet 2"},
@@ -35,6 +35,8 @@ var pages = map[int]page{
 	9:  {HTML: "Testing in Go page 9 sheet 4"},
 	10: {HTML: "Testing in Go page 10 sheet 5"},
 	11: {HTML: "Building Web Applications page 11 sheet 5"},
+	12: {HTML: ""},
+	13: {HTML: ""},
 }
 
 var book1 = book{

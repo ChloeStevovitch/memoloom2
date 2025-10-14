@@ -3,6 +3,7 @@ import "quill/dist/quill.snow.css";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../main";
 import { usePage } from "../context/pageContext";
+import { useBook } from "../context/bookContext";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   index: number;
@@ -13,29 +14,37 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const [quillHasBeenFilled, setQuillHasBeenFilled] = useState(false);
-  const { setCurrentPage, savedPage, fetchPage } = usePage();
-  if (index === -1) {
-    return;
-  }
-  const updatePage = () => {
+  const { setCurrentPage, savedPage, fetchPage, savePage, currentPage } =
+    usePage();
+  const { setActivePage } = useBook();
+  const updateCurrentPage = () => {
     const htmlContent = quillRef.current?.root.innerHTML;
     if (htmlContent !== undefined) {
       setCurrentPage({ html: htmlContent });
     }
   };
+  const save = async (index: number) => {
+    const resp = await savePage(index);
+    if (resp) {
+      fillQuillContent(resp.html);
+    }
+  };
+  const fetch = async (index: number) => {
+    const resp = await fetchPage(index);
+    if (resp) {
+      fillQuillContent(resp.html);
+    }
+  };
 
   useEffect(() => {
-    if (visible && !quillHasBeenFilled) {
-      fetchPage(index);
+    if (visible) {
+      !quillHasBeenFilled && fetch(index);
+    } else {
+      quillHasBeenFilled &&
+        currentPage?.html !== savedPage?.html &&
+        save(index);
     }
   }, [visible, quillHasBeenFilled]);
-
-  useEffect(() => {
-    if (visible && savedPage) {
-      fillQuillContent(savedPage.html);
-      setQuillHasBeenFilled(true);
-    }
-  }, [visible, savedPage]);
 
   useEffect(() => {
     let isCleanedUp = false;
@@ -49,12 +58,19 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
               ["image", "code-block"],
             ],
           },
-          placeholder: "Write something...",
           theme: "snow",
+        });
+        const toolbar =
+          editorRef.current?.parentElement?.querySelector(".ql-toolbar");
+        toolbar?.setAttribute("id", "page-" + index + "-toolbar");
+        quillRef.current.on("selection-change", (range) => {
+          if (range) {
+            setActivePage(index);
+          }
         });
 
         quillRef.current.on("text-change", () => {
-          updatePage();
+          updateCurrentPage();
         });
       }
     };
@@ -78,11 +94,19 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
     if (!!content && quillRef.current) {
       console.log("Loading content into Quill:", content);
       quillRef.current.root.innerHTML = content;
+      setQuillHasBeenFilled(true);
     }
   };
 
   return (
-    <div className={cn(" h-full w-full flex flex-col", className)} {...props}>
+    <div
+      className={cn(
+        " h-full w-full flex flex-col",
+        className,
+        visible && "visible"
+      )}
+      {...props}
+    >
       <div ref={editorRef} className="h-full " />
     </div>
   );
