@@ -1,15 +1,41 @@
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../main";
+import { usePage } from "../context/pageContext";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
-  content?: string;
+  index: number;
+  visible: boolean;
 }
 
-function Page({ className, content, ...props }: PageProps) {
+function Page({ className, content, index, visible, ...props }: PageProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
+  const [quillHasBeenFilled, setQuillHasBeenFilled] = useState(false);
+  const { setCurrentPage, savedPage, fetchPage } = usePage();
+  if (index === -1) {
+    return;
+  }
+  const updatePage = () => {
+    const htmlContent = quillRef.current?.root.innerHTML;
+    if (htmlContent !== undefined) {
+      setCurrentPage({ html: htmlContent });
+    }
+  };
+
+  useEffect(() => {
+    if (visible && !quillHasBeenFilled) {
+      fetchPage(index);
+    }
+  }, [visible, quillHasBeenFilled]);
+
+  useEffect(() => {
+    if (visible && savedPage) {
+      fillQuillContent(savedPage.html);
+      setQuillHasBeenFilled(true);
+    }
+  }, [visible, savedPage]);
 
   useEffect(() => {
     let isCleanedUp = false;
@@ -23,14 +49,13 @@ function Page({ className, content, ...props }: PageProps) {
               ["image", "code-block"],
             ],
           },
-          placeholder: "Compose an epic...",
+          placeholder: "Write something...",
           theme: "snow",
         });
 
-        // Définir le contenu initial si fourni
-        if (content && content.length && quillRef.current) {
-          quillRef.current.setText(content);
-        }
+        quillRef.current.on("text-change", () => {
+          updatePage();
+        });
       }
     };
 
@@ -49,12 +74,12 @@ function Page({ className, content, ...props }: PageProps) {
     };
   }, []);
 
-  // Effet pour mettre à jour le contenu quand il change
-  useEffect(() => {
-    if (!!content && content.length && quillRef.current) {
-      quillRef.current.setText(content);
+  const fillQuillContent = (content: string = "") => {
+    if (!!content && quillRef.current) {
+      console.log("Loading content into Quill:", content);
+      quillRef.current.root.innerHTML = content;
     }
-  }, [content]);
+  };
 
   return (
     <div className={cn(" h-full w-full flex flex-col", className)} {...props}>

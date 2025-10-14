@@ -1,27 +1,28 @@
+import { useBook } from "../context/bookContext";
+import { PageProvider } from "../context/pageContext";
 import { cn } from "../main";
 import Page from "./Page";
 
 interface SheetRightProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
   zIndex: number;
   isFlipped: boolean;
   isLast?: boolean;
   isFirst?: boolean;
-  sheetId: number;
-  pageContentRecto?: string;
-  pageContentVerso?: string;
+  rectoId: number;
+  versoId: number;
 }
 
 function SheetRight({
   zIndex,
   isFlipped,
-  sheetId,
   isFirst,
   isLast,
-  pageContentRecto,
-  pageContentVerso,
+  rectoId,
+  versoId,
   ...props
 }: SheetRightProps) {
+  const { activeRectoSheet } = useBook();
+
   return (
     <div
       {...props}
@@ -35,11 +36,20 @@ function SheetRight({
       }}
     >
       {["recto", "verso"].map((side) => (
-        <Page
-          key={`age-${side}-${sheetId}`}
-          className={cn("page", side, (isFirst || isLast) && "cover")}
-          content={side === "recto" ? pageContentRecto : pageContentVerso}
-        />
+        <PageProvider
+          key={`page-provider-${side === "recto" ? rectoId : versoId}`}
+        >
+          <Page
+            key={`page-${side === "recto" ? rectoId : versoId}`}
+            visible={
+              side === "recto"
+                ? rectoId === activeRectoSheet
+                : versoId === activeRectoSheet - 1
+            }
+            index={side === "recto" ? rectoId : versoId}
+            className={cn("page", side, (isFirst || isLast) && "cover")}
+          />
+        </PageProvider>
       ))}
     </div>
   );

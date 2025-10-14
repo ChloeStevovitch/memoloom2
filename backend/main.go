@@ -2,52 +2,51 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 type page struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
+	HTML string `json:"html"`
 }
 
 type book struct {
-	ID      string `json:"id"`
-	Title   string `json:"title"`
-	Content []page `json:"content"`
+	Title   string       `json:"title"`
+	Content map[int]page `json:"content"`
 }
 
 type user struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Shelf []book `json:"shelf"`
+	Name  string       `json:"name"`
+	Shelf map[int]book `json:"shelf"`
 }
 
-var page1 = page{ID: "1", Text: "Introduction to Go"}
-var page2 = page{ID: "2", Text: "Variables and Types"}
-var page3 = page{ID: "3", Text: "Control Structures"}
-var page4 = page{ID: "4", Text: "Functions"}
-var page5 = page{ID: "5", Text: "Structs and Interfaces"}
-var page6 = page{ID: "6", Text: "Concurrency in Go"}
-var page7 = page{ID: "7", Text: "Error Handling"}
-var page8 = page{ID: "8", Text: "Standard Library"}
-var page9 = page{ID: "9", Text: "Testing in Go"}
-var page10 = page{ID: "10", Text: "Building Web Applications"}
+var pages = map[int]page{
+	0:  {HTML: "TITRE page 0 sheet 0 "},
+	1:  {HTML: "Introduction to Go page 1 sheet 0 "},
+	2:  {HTML: "Variables and Types page 2 sheet 1"},
+	3:  {HTML: "Control Structures page 3 sheet 1"},
+	4:  {HTML: "Functions page 4 sheet 2"},
+	5:  {HTML: "Structs and Interfaces page 5 sheet 2"},
+	6:  {HTML: "Concurrency in Go page 6 sheet 3"},
+	7:  {HTML: "Error Handling page 7 sheet 3"},
+	8:  {HTML: "Standard Library page 8 sheet 4"},
+	9:  {HTML: "Testing in Go page 9 sheet 4"},
+	10: {HTML: "Testing in Go page 10 sheet 5"},
+	11: {HTML: "Building Web Applications page 11 sheet 5"},
+}
 
-var pages = []page{page1, page2, page3, page4, page5, page6, page7, page8, page9, page10}
 var book1 = book{
-	ID:      "1",
 	Title:   "The Go Programming Language",
 	Content: pages,
 }
 var book2 = book{
-	ID:      "2",
 	Title:   "Learning Go",
 	Content: pages,
 }
 var users = []user{
-	{ID: "1", Name: "Alice", Shelf: []book{book1, book2}},
+	0: {Name: "Alice", Shelf: map[int]book{0: book1, 1: book2}},
 }
 
 func main() {
@@ -62,24 +61,45 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	router.GET("/api/getBook", getBook)
-	router.GET("/api/getBooks", getBooks)
-	router.POST("/api/writeNewPage", postPage)
+	// router.GET("/api/getBook", getBook)
+	// router.GET("/api/getBooks", getBooks)
+	router.GET("/api/getPage/:id", getPageById)
+	router.PUT("/api/updatePage/:id", updatePageById)
+	router.GET("/api/getBookLength", getBookLength)
+	// router.PUT("/api/updateBook", updateBook)
 	router.Run("localhost:8080")
 }
+func getBookLength(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, len(users[0].Shelf[0].Content))
+}
 
-// postAlbums adds an album from JSON received in the request body.
-func postPage(c *gin.Context) {
+//	func getBooks(c *gin.Context) {
+//		c.IndentedJSON(http.StatusOK, users[0].Shelf)
+//	}
+//
+//	func getBook(c *gin.Context) {
+//		c.IndentedJSON(http.StatusOK, users[0].Shelf[0])
+//	}
+func getPageById(c *gin.Context) {
+	id := c.Param("id")
+	pageId, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page ID"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, users[0].Shelf[0].Content[pageId])
+}
+func updatePageById(c *gin.Context) {
+	id := c.Param("id")
+	pageId, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page ID"})
+		return
+	}
 	var newPage page
 	if err := c.BindJSON(&newPage); err != nil {
 		return
 	}
-	pages = append(pages, newPage)
-	c.IndentedJSON(http.StatusCreated, newPage)
-}
-func getBooks(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, users[0].Shelf)
-}
-func getBook(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, users[0].Shelf[0])
+	users[0].Shelf[0].Content[pageId] = newPage
+	c.IndentedJSON(http.StatusOK, newPage)
 }
