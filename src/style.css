@@ -1,5 +1,9 @@
 @import "tailwindcss";
-
+body,
+html,
+#root {
+  @apply h-screen w-screen absolute;
+}
 :root {
   --radial-gradient-25: radial-gradient(
     circle at 25% 25%,
@@ -35,6 +39,7 @@
   .desk {
     background-image: url("src/assets/images/wood-texture.jpg");
     background-size: cover;
+    overflow: hidden;
   }
 
   .ql-container {
@@ -46,9 +51,7 @@
   .ql-toolbar {
     @apply !border-0;
   }
-  .pageContainer .ql-toolbar {
-    @apply hidden;
-  }
+
   .sheetContainer {
     @apply h-[650px] aspect-3/4;
   }

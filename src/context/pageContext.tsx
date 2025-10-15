@@ -11,10 +11,7 @@ interface PageContextType {
   fetchLoading: boolean;
   saveLoading: boolean;
   error: string | null;
-  setCurrentPage: React.Dispatch<React.SetStateAction<Page | undefined>>;
-  currentPage: Page | undefined;
-  savedPage: Page | undefined;
-  savePage: (index: number) => Promise<Page | undefined>;
+  savePage: (index: number, page: Page) => Promise<Page | undefined>;
   fetchPage: (index: number) => Promise<Page | undefined>;
 }
 
@@ -25,9 +22,6 @@ interface PageProviderProps {
 }
 
 export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState<Page | undefined>(undefined);
-  const [savedPage, setSavedPage] = useState<Page | undefined>(undefined);
-
   const [saveLoading, setSaveLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +30,6 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     try {
       setFetchLoading(true);
       const data = await pageServiceHttp.getPage(index);
-      setSavedPage(data);
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -46,12 +39,11 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     }
   };
 
-  const savePage = async (index: number) => {
-    if (currentPage === undefined || index === null) return;
+  const savePage = async (index: number, page: Page) => {
+    if (index === null) return;
     try {
       setSaveLoading(true);
-      const data = await pageServiceHttp.updatePage(index, currentPage);
-      setSavedPage(data);
+      const data = await pageServiceHttp.updatePage(index, page);
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -61,14 +53,11 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
   };
 
   const value: PageContextType = {
-    currentPage,
-    savedPage,
     fetchLoading,
     saveLoading,
     error,
     savePage,
     fetchPage,
-    setCurrentPage,
   };
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;

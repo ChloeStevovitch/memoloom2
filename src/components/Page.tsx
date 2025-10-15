@@ -1,9 +1,10 @@
-import Quill from "quill";
+import { Delta } from "quill";
 import "quill/dist/quill.snow.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../main";
 import { usePage } from "../context/pageContext";
-import { useBook } from "../context/bookContext";
+import type { Page as PageType } from "../service/types";
+import ReactQuill from "react-quill-new";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   index: number;
@@ -11,103 +12,184 @@ interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 function Page({ className, content, index, visible, ...props }: PageProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<Quill | null>(null);
-  const [quillHasBeenFilled, setQuillHasBeenFilled] = useState(false);
-  const { setCurrentPage, savedPage, fetchPage, savePage, currentPage } =
-    usePage();
-  const { setActivePage } = useBook();
-  const updateCurrentPage = () => {
-    const htmlContent = quillRef.current?.root.innerHTML;
-    if (htmlContent !== undefined) {
-      setCurrentPage({ html: htmlContent });
+  const quillRef = useRef<ReactQuill>(null);
+  const quillRefReadOnly = useRef<ReactQuill>(null);
+  const { fetchPage, savePage } = usePage();
+  const [isReadOnly, setIsReadOnly] = useState(true);
+  const [savedPage, setSavedPage] = useState<PageType | undefined>(undefined);
+  const [editorIsLoaded, setEditorIsLoaded] = useState<boolean>(false);
+  const [readOnlyEditorIsLoaded, setReadOnlyEditorIsLoaded] =
+    useState<boolean>(false);
+  const modules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: "1" }, { header: "2" }, { font: [] }],
+        [{ size: [] }],
+        ["bold", "italic", "underline", "strike", "blockquote"],
+        [{ list: "ordered" }, { indent: "-1" }, { indent: "+1" }],
+        ["link", "image", "video"],
+        ["clean"],
+      ],
+      clipboard: {
+        matchVisual: false,
+      },
+    }),
+    []
+  );
+  const emptyModule = useMemo(
+    () => ({
+      toolbar: false,
+    }),
+    []
+  );
+  const formats = useMemo(
+    () => [
+      "font",
+      "size",
+      "header",
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      "blockquote",
+      "list",
+      "indent",
+      "link",
+      "image",
+      "video",
+      "code-block",
+      "table",
+      "direction",
+      "align",
+      "color",
+      "background",
+    ],
+    []
+  );
+
+  const [editorDelta, setEditorDelta] = useState<ReactQuill.Value | undefined>(
+    undefined
+  );
+  const [readOnlyEditorDelta, setReadOnlyEditorDelta] = useState<
+    ReactQuill.Value | undefined
+  >(undefined);
+
+  const getDelta = (editorRef: React.RefObject<ReactQuill | null>) => {
+    if (editorRef.current) {
+      const editor = editorRef.current.getEditor();
+      return editor.getContents();
     }
   };
-  const save = async (index: number) => {
-    const resp = await savePage(index);
+
+  const setDelta = (
+    delta: Delta,
+    editorRef: React.RefObject<ReactQuill | null>
+  ) => {
+    if (editorRef && editorRef.current) {
+      const editor = editorRef.current.getEditor();
+      editor.setContents(delta);
+    }
+  };
+  const safeJSONParse = (jsonString: string | undefined): any => {
+    if (!jsonString || jsonString.trim() === "") {
+      return undefined;
+    }
+    try {
+      return JSON.parse(jsonString);
+    } catch (error) {
+      return undefined;
+    }
+  };
+  const save = async (index: number, page: PageType) => {
+    const resp = await savePage(index, page);
     if (resp) {
-      fillQuillContent(resp.html);
+      setSavedPage(resp);
     }
   };
+
   const fetch = async (index: number) => {
     const resp = await fetchPage(index);
     if (resp) {
-      fillQuillContent(resp.html);
+      setSavedPage(resp);
     }
   };
 
   useEffect(() => {
-    if (visible) {
-      !quillHasBeenFilled && fetch(index);
-    } else {
-      quillHasBeenFilled &&
-        currentPage?.html !== savedPage?.html &&
-        save(index);
-    }
-  }, [visible, quillHasBeenFilled]);
+    if (visible) fetch(index);
+  }, [visible]);
+
+  const handleBlurEvent = async () => {
+    setEditorIsLoaded(false);
+    await save(index, { delta: JSON.stringify(getDelta(quillRef)) });
+    setIsReadOnly(true);
+  };
+
+  const handleFocusEvent = () => {
+    setReadOnlyEditorIsLoaded(false);
+    setIsReadOnly(false);
+  };
 
   useEffect(() => {
-    let isCleanedUp = false;
-    const initializeQuill = () => {
-      if (editorRef.current && !quillRef.current && !isCleanedUp) {
-        quillRef.current = new Quill(editorRef.current, {
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, false] }],
-              ["bold", "italic", "underline"],
-              ["image", "code-block"],
-            ],
-          },
-          theme: "snow",
-        });
-        const toolbar =
-          editorRef.current?.parentElement?.querySelector(".ql-toolbar");
-        toolbar?.setAttribute("id", "page-" + index + "-toolbar");
-        quillRef.current.on("selection-change", (range) => {
-          if (range) {
-            setActivePage(index);
-          }
-        });
-
-        quillRef.current.on("text-change", () => {
-          updateCurrentPage();
-        });
-      }
-    };
-
-    const timeoutId = setTimeout(initializeQuill, 0);
-
-    return () => {
-      isCleanedUp = true;
-      clearTimeout(timeoutId);
-
-      if (quillRef.current) {
-        try {
-          quillRef.current.disable();
-        } catch (error) {}
-        quillRef.current = null;
-      }
-    };
-  }, []);
-
-  const fillQuillContent = (content: string = "") => {
-    if (!!content && quillRef.current) {
-      console.log("Loading content into Quill:", content);
-      quillRef.current.root.innerHTML = content;
-      setQuillHasBeenFilled(true);
+    if (editorIsLoaded) {
+      setDelta(safeJSONParse(savedPage?.delta), quillRef);
+      setReadOnlyEditorIsLoaded(false);
     }
-  };
+  }, [editorIsLoaded]);
+
+  useEffect(() => {
+    if (readOnlyEditorIsLoaded) {
+      setDelta(
+        savedPage ? safeJSONParse(savedPage?.delta) : undefined,
+        quillRefReadOnly
+      );
+      setEditorIsLoaded(false);
+    }
+  }, [readOnlyEditorIsLoaded]);
 
   return (
     <div
       className={cn(
         " h-full w-full flex flex-col",
         className,
-        visible && "visible"
+        "visible",
+        isReadOnly && "read-only"
       )}
       {...props}
     >
-      <div ref={editorRef} className="h-full " />
+      {(visible || (!visible && savedPage)) &&
+        savedPage &&
+        (isReadOnly ? (
+          <ReactQuill
+            theme="snow"
+            ref={(instance) => {
+              quillRefReadOnly.current = instance;
+              if (instance && !readOnlyEditorIsLoaded) {
+                setReadOnlyEditorIsLoaded(true);
+              }
+            }}
+            value={readOnlyEditorDelta}
+            modules={emptyModule}
+            readOnly={true}
+            onChange={setReadOnlyEditorDelta}
+            onFocus={handleFocusEvent}
+          />
+        ) : (
+          <ReactQuill
+            id="Quill"
+            theme="snow"
+            ref={(instance) => {
+              quillRef.current = instance;
+              if (instance && !editorIsLoaded) {
+                setEditorIsLoaded(true);
+              }
+            }}
+            onChange={setEditorDelta}
+            value={editorDelta}
+            modules={modules}
+            formats={formats}
+            onBlur={handleBlurEvent}
+          />
+        ))}
     </div>
   );
 }

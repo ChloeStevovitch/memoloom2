@@ -7,8 +7,19 @@ import { BookProvider } from "./context/bookContext.tsx";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-createRoot(document.getElementById("root")!).render(
-  <BookProvider>
-    <App />
-  </BookProvider>
-);
+
+let container: any = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  if (!container) {
+    container = document.getElementById("root") as HTMLElement;
+    const root = createRoot(container);
+    root.render(
+      <BookProvider>
+        <>
+          <App />
+        </>
+      </BookProvider>
+    );
+  }
+});

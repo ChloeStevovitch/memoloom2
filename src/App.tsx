@@ -1,6 +1,7 @@
 import SheetRight from "./components/SheetRight";
 import Binding from "./components/Binding";
 import { useBook } from "./context/bookContext";
+import { PageProvider } from "./context/pageContext";
 
 function App() {
   const {
@@ -13,12 +14,11 @@ function App() {
     getNbSheets,
     getRectoIndexFromSheetId,
     getVersoIndexFromSheetId,
-    setActivePage,
   } = useBook();
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center">
+      <div className=" h-full w-full flex items-center justify-center">
         Loading books...
       </div>
     );
@@ -26,14 +26,14 @@ function App() {
 
   if (!bookLength) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center">
+      <div className=" h-full w-full flex items-center justify-center">
         No book available
       </div>
     );
   }
 
   return (
-    <div className=" h-screen w-screen  ">
+    <div className=" h-full w-full  fixed ">
       <div className="bg-blue-200 fixed top-0 h-[50px] w-full flex items-center px-4">
         <span className="mr-4 flex gap-2">
           <button
@@ -55,19 +55,11 @@ function App() {
           Book: {bookLength} pages - current pair: {getCurrentPair} left sheet :
           {activeRectoSheet - 1} right sheet : {activeRectoSheet} - nb sheets :
           {getNbSheets(bookLength)}
+          activeRectoSheet {activeRectoSheet}
         </span>
       </div>
-      <div className="bg-white fixed top-[50px] h-[40px] w-full  px-4">
-        <div id="toolbar-container" className="w-full h-full">
-          {/* Toolbar sera gérée via DOM manipulation */}
-        </div>
-      </div>
-      <div
-        onClick={() => {
-          setActivePage(undefined);
-        }}
-        className="desk h-[calc(100%-90px)] top-[100px] fixed w-full "
-      ></div>
+      <div className="bg-white fixed top-[50px] h-[40px] w-full  px-4"></div>
+      <div className="desk h-[calc(100%-90px)] top-[90px] fixed w-full "></div>
       <div className="sheetContainer absolute top-[calc(50%-650px/2)] left-[50%] ">
         <Binding className="left-[-100px]" />
 
@@ -83,6 +75,12 @@ function App() {
           />
         ))}
       </div>
+      <PageProvider>
+        <div
+          className=" w-0 h-0 overflow-hidden fixed bottom-[10%]"
+          id="hiddenEditorContainer"
+        ></div>
+      </PageProvider>
     </div>
   );
 }

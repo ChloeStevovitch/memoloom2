@@ -1,5 +1,4 @@
 import React, {
-  cloneElement,
   createContext,
   useCallback,
   useContext,
@@ -27,8 +26,6 @@ interface BookContextType {
   getVersoIndexFromSheetId: (sheetId: number) => number;
   getCurrentPair: number;
   getNbSheets: (bookLength: number | undefined) => number;
-  activePage: number | undefined;
-  setActivePage: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 const BookContext = createContext<BookContextType | undefined>(undefined);
@@ -44,8 +41,6 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [flipDirection, setFlipDirection] = useState<"left" | "right" | null>(
     null
   );
-  const [activePage, setActivePage] = useState<number | undefined>(undefined);
-  const prevActivePage = usePrevious({ activePage });
 
   const getCurrentPair = useMemo(
     () => activeRectoSheet / 2,
@@ -127,30 +122,6 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     setFlipDirection(null);
   }, [flipDirection]);
 
-  useEffect(() => {
-    if (prevActivePage?.activePage === activePage) return;
-    if (activePage === undefined) {
-      const toolbarContainer = document.getElementById("toolbar-container");
-      if (toolbarContainer) {
-        toolbarContainer.replaceChildren();
-      }
-      return;
-    }
-    const toolbar = document.getElementById(
-      "page-" + (activePage ?? "") + "-toolbar"
-    );
-    console.log(activePage);
-    if (toolbar) {
-      var toolbarCopy = toolbar?.cloneNode(true);
-      const toolbarContainer = document.getElementById("toolbar-container");
-      if (toolbarContainer) {
-        toolbarContainer.replaceChildren();
-        toolbarContainer.appendChild(toolbarCopy);
-        console.log("Toolbar updated");
-      }
-    }
-  }, [activePage]);
-
   const value: BookContextType = {
     loading,
     error,
@@ -164,8 +135,6 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     flipDirection,
     getNbSheets,
     setFlipDirection,
-    activePage,
-    setActivePage,
   };
 
   return <BookContext.Provider value={value}>{children}</BookContext.Provider>;
