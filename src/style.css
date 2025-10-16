@@ -52,6 +52,41 @@ html,
     @apply !border-0;
   }
 
+  /* Normalisation des styles entre readonly et editable */
+  .quill-readonly .ql-container,
+  .quill-editable .ql-container {
+    @apply !border-0 !m-0 !p-0;
+    height: 100% !important;
+    min-height: auto !important;
+  }
+
+  .quill-readonly .ql-editor,
+  .quill-editable .ql-editor {
+    @apply !border-0 !m-0 !outline-none;
+    box-shadow: none !important;
+    padding: 12px 15px !important;
+    min-height: auto !important;
+    line-height: inherit !important;
+  }
+
+  .quill-readonly:focus,
+  .quill-editable:focus,
+  .quill-readonly .ql-editor:focus,
+  .quill-editable .ql-editor:focus {
+    @apply !outline-none;
+    box-shadow: none !important;
+  }
+
+  /* S'assurer que les deux modes ont exactement les mêmes dimensions */
+  .quill-readonly,
+  .quill-editable {
+    @apply !border-0 !m-0 !p-0 !h-full !w-full outline-0;
+  }
+
+  .page .ql-toolbar {
+    @apply hidden;
+  }
+
   .sheetContainer {
     @apply h-[650px] aspect-3/4;
   }
