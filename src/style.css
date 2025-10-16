@@ -59,7 +59,9 @@ html,
   .pageContainer {
     @apply absolute h-full w-full transition-transform transform-3d duration-1000 ease-in-out z-0 perspective-[2000px];
   }
-
+  select:empty {
+    display: none;
+  }
   .pageContainer.right {
     @apply origin-left;
   }

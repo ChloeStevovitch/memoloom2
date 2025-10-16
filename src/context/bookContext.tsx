@@ -8,7 +8,6 @@ import React, {
   type ReactNode,
 } from "react";
 import bookServiceHttp from "../service/bookServiceHttp";
-import usePrevious from "../hooks/usePrevious";
 
 interface BookContextType {
   bookLength: number | undefined;
@@ -85,10 +84,7 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
 
   useEffect(() => {
     if (flipDirection === null) return;
-    const toolbarContainer = document.getElementById("toolbar-container");
-    if (toolbarContainer) {
-      toolbarContainer.replaceChildren();
-    }
+
     const direction = flipDirection;
 
     let newArray1: any = [];

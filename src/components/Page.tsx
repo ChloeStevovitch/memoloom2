@@ -5,12 +5,42 @@ import { cn } from "../main";
 import { usePage } from "../context/pageContext";
 import type { Page as PageType } from "../service/types";
 import ReactQuill from "react-quill-new";
+import { useBook } from "../context/bookContext";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   index: number;
   visible: boolean;
 }
 
+const createToolbarElement = () => {
+  const toolbarDiv = document.createElement("div");
+  toolbarDiv.innerHTML = `
+      <select class="ql-font" name="font"></select>
+      <select class="ql-size" name="size"></select>
+      <button class="ql-bold"></button>
+      <button class="ql-italic"></button>
+      <button class="ql-underline"></button>
+      <button class="ql-strike"></button>
+      <select class="ql-color" name="color"></select>
+      <select class="ql-background" name="background"></select>
+      <button class="ql-header" value="1"></button>
+      <button class="ql-header" value="2"></button>
+      <button class="ql-blockquote"></button>
+      <button class="ql-code-block"></button>
+      <button class="ql-list" value="ordered"></button>
+      <button class="ql-list" value="bullet"></button>
+      <button class="ql-indent" value="-1"></button>
+      <button class="ql-indent" value="+1"></button>
+      <button class="ql-direction" value="rtl"></button>
+      <select class="ql-align" name="align"></select>
+      <button class="ql-link"></button>
+      <button class="ql-image"></button>
+      <button class="ql-video"></button>
+      <button class="ql-formula"></button>
+      <button class="ql-clean"></button>
+  `;
+  return toolbarDiv;
+};
 function Page({ className, content, index, visible, ...props }: PageProps) {
   const quillRef = useRef<ReactQuill>(null);
   const quillRefReadOnly = useRef<ReactQuill>(null);
@@ -20,22 +50,8 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
   const [editorIsLoaded, setEditorIsLoaded] = useState<boolean>(false);
   const [readOnlyEditorIsLoaded, setReadOnlyEditorIsLoaded] =
     useState<boolean>(false);
-  const modules = useMemo(
-    () => ({
-      toolbar: [
-        [{ header: "1" }, { header: "2" }, { font: [] }],
-        [{ size: [] }],
-        ["bold", "italic", "underline", "strike", "blockquote"],
-        [{ list: "ordered" }, { indent: "-1" }, { indent: "+1" }],
-        ["link", "image", "video"],
-        ["clean"],
-      ],
-      clipboard: {
-        matchVisual: false,
-      },
-    }),
-    []
-  );
+  const { flipDirection } = useBook();
+
   const emptyModule = useMemo(
     () => ({
       toolbar: false,
@@ -115,12 +131,22 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
   };
 
   useEffect(() => {
-    if (visible) fetch(index);
+    if (
+      (flipDirection === "right" || flipDirection === "left") &&
+      !isReadOnly
+    ) {
+      handleBlurEvent();
+    }
+  }, [flipDirection]);
+
+  useEffect(() => {
+    if (visible && !savedPage) fetch(index);
   }, [visible]);
 
   const handleBlurEvent = async () => {
     setEditorIsLoaded(false);
     await save(index, { delta: JSON.stringify(getDelta(quillRef)) });
+
     setIsReadOnly(true);
   };
 
@@ -145,6 +171,13 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
       setEditorIsLoaded(false);
     }
   }, [readOnlyEditorIsLoaded]);
+
+  const module = useMemo(
+    () => ({
+      toolbar: "#toolbar-container",
+    }),
+    []
+  );
 
   return (
     <div
@@ -176,18 +209,21 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
         ) : (
           <ReactQuill
             id="Quill"
-            theme="snow"
             ref={(instance) => {
               quillRef.current = instance;
               if (instance && !editorIsLoaded) {
+                document.getElementById("toolbar-container")?.replaceChildren();
+                document
+                  .getElementById("toolbar-container")
+                  ?.appendChild(createToolbarElement());
                 setEditorIsLoaded(true);
               }
             }}
             onChange={setEditorDelta}
             value={editorDelta}
-            modules={modules}
+            modules={editorIsLoaded ? module : undefined}
             formats={formats}
-            onBlur={handleBlurEvent}
+            theme="snow"
           />
         ))}
     </div>
