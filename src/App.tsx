@@ -2,7 +2,6 @@ import SheetRight from "./components/SheetRight";
 import Binding from "./components/Binding";
 import { useBook } from "./context/bookContext";
 import { PageProvider } from "./context/pageContext";
-import { cn } from "./main";
 
 function App() {
   const {
@@ -61,7 +60,7 @@ function App() {
       </div>
       <div className="desk h-[calc(100%-90px)] top-[90px] fixed w-full "></div>
 
-      <div className="bg-white fixed top-[50px] h-[40px] w-full">
+      <div className="bg-white fixed top-[50px] h-[40px] w-full z-1000">
         <div
           id="toolbar-container"
           className="h-full w-full overflow-visible z-50 relative "

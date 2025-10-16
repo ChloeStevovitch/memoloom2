@@ -1,11 +1,12 @@
 import { Delta } from "quill";
 import "quill/dist/quill.snow.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../main";
 import { usePage } from "../context/pageContext";
 import type { Page as PageType } from "../service/types";
 import ReactQuill from "react-quill-new";
 import { useBook } from "../context/bookContext";
+import throttle from "../utils/throttle";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   index: number;
@@ -41,143 +42,150 @@ const createToolbarElement = () => {
   `;
   return toolbarDiv;
 };
+
+const formats = [
+  "font",
+  "size",
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "blockquote",
+  "list",
+  "indent",
+  "link",
+  "image",
+  "video",
+  "code-block",
+  "table",
+  "direction",
+  "align",
+  "color",
+  "background",
+];
+const pageConstructor = (delta?: Delta): PageType | undefined => {
+  if (!delta) return undefined;
+  return { delta: JSON.stringify(delta || new Delta()) };
+};
+
+const getDelta = (editorRef: React.RefObject<ReactQuill | null>) => {
+  if (editorRef.current) {
+    const editor = editorRef.current.getEditor();
+    return editor.getContents();
+  }
+};
+const safeJSONParse = (jsonString: string | undefined): any => {
+  if (!jsonString || jsonString.trim() === "") {
+    return undefined;
+  }
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    return undefined;
+  }
+};
+const setDelta = (
+  delta: Delta,
+  editorRef: React.RefObject<ReactQuill | null>
+) => {
+  if (editorRef && editorRef.current) {
+    const editor = editorRef.current.getEditor();
+    editor.setContents(delta);
+  }
+};
 function Page({ className, content, index, visible, ...props }: PageProps) {
   const quillRef = useRef<ReactQuill>(null);
   const quillRefReadOnly = useRef<ReactQuill>(null);
-  const { fetchPage, savePage } = usePage();
   const [isReadOnly, setIsReadOnly] = useState(true);
   const [savedPage, setSavedPage] = useState<PageType | undefined>(undefined);
-  const [editorIsLoaded, setEditorIsLoaded] = useState<boolean>(false);
-  const [readOnlyEditorIsLoaded, setReadOnlyEditorIsLoaded] =
-    useState<boolean>(false);
-  const { flipDirection } = useBook();
-
-  const emptyModule = useMemo(
-    () => ({
-      toolbar: false,
-    }),
-    []
+  const [currentPage, setCurrentPage] = useState<PageType | undefined>(
+    pageConstructor()
   );
-  const formats = useMemo(
-    () => [
-      "font",
-      "size",
-      "header",
-      "bold",
-      "italic",
-      "underline",
-      "strike",
-      "blockquote",
-      "list",
-      "indent",
-      "link",
-      "image",
-      "video",
-      "code-block",
-      "table",
-      "direction",
-      "align",
-      "color",
-      "background",
-    ],
-    []
-  );
-
-  const [editorDelta, setEditorDelta] = useState<ReactQuill.Value | undefined>(
-    undefined
-  );
-  const [readOnlyEditorDelta, setReadOnlyEditorDelta] = useState<
+  const [editorIsLoaded, setEditorIsLoaded] = useState(false);
+  const [readOnlyEditorIsLoaded, setReadOnlyEditorIsLoaded] = useState(false);
+  const [editorDeltaValue, setEditorDeltaValue] = useState<
     ReactQuill.Value | undefined
   >(undefined);
+  const { flipDirection } = useBook();
+  const { fetchPage, savePage } = usePage();
 
-  const getDelta = (editorRef: React.RefObject<ReactQuill | null>) => {
-    if (editorRef.current) {
-      const editor = editorRef.current.getEditor();
-      return editor.getContents();
+  const save = async (index: number, page: PageType | undefined) => {
+    if (!page || page.delta === savedPage?.delta) {
+      return;
     }
-  };
-
-  const setDelta = (
-    delta: Delta,
-    editorRef: React.RefObject<ReactQuill | null>
-  ) => {
-    if (editorRef && editorRef.current) {
-      const editor = editorRef.current.getEditor();
-      editor.setContents(delta);
-    }
-  };
-  const safeJSONParse = (jsonString: string | undefined): any => {
-    if (!jsonString || jsonString.trim() === "") {
-      return undefined;
-    }
-    try {
-      return JSON.parse(jsonString);
-    } catch (error) {
-      return undefined;
-    }
-  };
-  const save = async (index: number, page: PageType) => {
     const resp = await savePage(index, page);
     if (resp) {
       setSavedPage(resp);
+      setCurrentPage(resp);
     }
   };
-
+  const throttledSave = useRef(
+    throttle(
+      (pageIndex: number, page: PageType | undefined) => save(pageIndex, page),
+      1000
+    )
+  );
+  const handleSave = () => {
+    throttledSave.current(index, currentPage);
+  };
+  const throttledFetch = useRef(
+    throttle((pageIndex: number) => fetch(pageIndex), 1000)
+  );
+  const handleFetch = () => {
+    throttledFetch.current(index);
+  };
   const fetch = async (index: number) => {
     const resp = await fetchPage(index);
     if (resp) {
       setSavedPage(resp);
+      setCurrentPage(resp);
     }
   };
 
   useEffect(() => {
-    if (
-      (flipDirection === "right" || flipDirection === "left") &&
-      !isReadOnly
-    ) {
-      handleBlurEvent();
+    if (flipDirection === "right" || flipDirection === "left") {
+      goToReadOnly();
     }
   }, [flipDirection]);
 
   useEffect(() => {
-    if (visible && !savedPage) fetch(index);
+    if (visible && !savedPage) {
+      handleFetch();
+    }
   }, [visible]);
 
-  const handleBlurEvent = async () => {
-    setEditorIsLoaded(false);
-    await save(index, { delta: JSON.stringify(getDelta(quillRef)) });
-
-    setIsReadOnly(true);
-  };
-
-  const handleFocusEvent = () => {
-    setReadOnlyEditorIsLoaded(false);
+  const goToEdit = () => {
+    if (!isReadOnly) {
+      return;
+    }
     setIsReadOnly(false);
   };
 
-  useEffect(() => {
-    if (editorIsLoaded) {
-      setDelta(safeJSONParse(savedPage?.delta), quillRef);
-      setReadOnlyEditorIsLoaded(false);
+  const goToReadOnly = () => {
+    if (isReadOnly) {
+      return;
     }
-  }, [editorIsLoaded]);
+    handleSave();
+    setIsReadOnly(true);
+  };
 
   useEffect(() => {
+    if (!quillRef.current) return;
+    const content = getDelta(quillRef);
+    setCurrentPage(pageConstructor(content));
+  }, [editorDeltaValue, quillRef]);
+
+  useEffect(() => {
+    if (!currentPage) {
+      return;
+    }
     if (readOnlyEditorIsLoaded) {
-      setDelta(
-        savedPage ? safeJSONParse(savedPage?.delta) : undefined,
-        quillRefReadOnly
-      );
-      setEditorIsLoaded(false);
+      setDelta(safeJSONParse(currentPage?.delta), quillRefReadOnly);
+    } else if (editorIsLoaded) {
+      setDelta(safeJSONParse(currentPage?.delta), quillRef);
     }
-  }, [readOnlyEditorIsLoaded]);
-
-  const module = useMemo(
-    () => ({
-      toolbar: "#toolbar-container",
-    }),
-    []
-  );
+  }, [readOnlyEditorIsLoaded, editorIsLoaded, currentPage]);
 
   return (
     <div
@@ -189,8 +197,7 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
       )}
       {...props}
     >
-      {(visible || (!visible && savedPage)) &&
-        savedPage &&
+      {currentPage &&
         (isReadOnly ? (
           <ReactQuill
             theme="snow"
@@ -198,30 +205,42 @@ function Page({ className, content, index, visible, ...props }: PageProps) {
               quillRefReadOnly.current = instance;
               if (instance && !readOnlyEditorIsLoaded) {
                 setReadOnlyEditorIsLoaded(true);
+              } else if (!instance && readOnlyEditorIsLoaded) {
+                setReadOnlyEditorIsLoaded(false);
               }
             }}
-            value={readOnlyEditorDelta}
-            modules={emptyModule}
+            value={editorDeltaValue}
+            modules={{
+              toolbar: false,
+            }}
             readOnly={true}
-            onChange={setReadOnlyEditorDelta}
-            onFocus={handleFocusEvent}
+            onFocus={goToEdit}
           />
         ) : (
           <ReactQuill
             id="Quill"
             ref={(instance) => {
               quillRef.current = instance;
+
               if (instance && !editorIsLoaded) {
                 document.getElementById("toolbar-container")?.replaceChildren();
                 document
                   .getElementById("toolbar-container")
                   ?.appendChild(createToolbarElement());
                 setEditorIsLoaded(true);
+              } else if (!instance && editorIsLoaded) {
+                setEditorIsLoaded(false);
               }
             }}
-            onChange={setEditorDelta}
-            value={editorDelta}
-            modules={editorIsLoaded ? module : undefined}
+            onChange={setEditorDeltaValue}
+            value={editorDeltaValue}
+            modules={
+              editorIsLoaded
+                ? {
+                    toolbar: "#toolbar-container",
+                  }
+                : undefined
+            }
             formats={formats}
             theme="snow"
           />

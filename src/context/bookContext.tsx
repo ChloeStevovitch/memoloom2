@@ -20,7 +20,8 @@ interface BookContextType {
   setFlipDirection: React.Dispatch<
     React.SetStateAction<"left" | "right" | null>
   >;
-
+  pageInEdition: number | null;
+  setPageInEdition: React.Dispatch<React.SetStateAction<number | null>>;
   getRectoIndexFromSheetId: (sheetId: number) => number;
   getVersoIndexFromSheetId: (sheetId: number) => number;
   getCurrentPair: number;
@@ -40,7 +41,7 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [flipDirection, setFlipDirection] = useState<"left" | "right" | null>(
     null
   );
-
+  const [pageInEdition, setPageInEdition] = useState<number | null>(null);
   const getCurrentPair = useMemo(
     () => activeRectoSheet / 2,
     [activeRectoSheet]
@@ -131,6 +132,8 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     flipDirection,
     getNbSheets,
     setFlipDirection,
+    pageInEdition,
+    setPageInEdition,
   };
 
   return <BookContext.Provider value={value}>{children}</BookContext.Provider>;
