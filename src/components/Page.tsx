@@ -1,11 +1,10 @@
-import "quill/dist/quill.snow.css";
 import { useEffect, useRef, useState } from "react";
 
 import { usePage } from "../context/pageContext";
 import { useBook } from "../context/bookContext";
 import type { Page as PageType } from "../service/types";
 import throttle from "../utils/throttle";
-import FabricJSCanvas from "./Canva";
+import FabricJSCanvas, { type FabricJSCanvasRef } from "./Canva";
 import { cn } from "../main";
 
 // Types
@@ -22,10 +21,17 @@ function Page({ className, index, visible, ...props }: PageProps) {
   );
 
   // Contexts
-  const { flipDirection, setUpdatedPages } = useBook();
+  const {
+    flipDirection,
+    setUpdatedPages,
+    setPageInEdition,
+    activeRectoSheet,
+    registerAddTextHandler,
+  } = useBook();
   const { fetchPage } = usePage();
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<FabricJSCanvasRef>(null);
 
   const fetchPageData = async (pageIndex: number) => {
     const resp = await fetchPage(pageIndex);
@@ -47,8 +53,11 @@ function Page({ className, index, visible, ...props }: PageProps) {
 
   // Effects
   useEffect(() => {
-    if (flipDirection === "right" || flipDirection === "left") {
+    if (flipDirection === "right") {
       console.log("Flip detected in Page component");
+      if (activeRectoSheet > 0) setPageInEdition(activeRectoSheet - 1);
+    } else if (flipDirection === "left") {
+      setPageInEdition(activeRectoSheet);
     }
   }, [flipDirection]);
 
@@ -70,10 +79,21 @@ function Page({ className, index, visible, ...props }: PageProps) {
     return element.offsetHeight;
   };
   const handleChange = (newCanvasData: any) => {
+    setPageInEdition(index);
     setUpdatedPages((prev) =>
       new Map(prev).set(index, JSON.stringify(newCanvasData))
     );
   };
+
+  const handleAddText = () => {
+    canvasRef.current?.addText();
+  };
+
+  // Register this page's addText handler in the context
+  useEffect(() => {
+    registerAddTextHandler(index, handleAddText);
+  }, [index, registerAddTextHandler]);
+
   return (
     <div
       ref={containerRef}
@@ -86,6 +106,7 @@ function Page({ className, index, visible, ...props }: PageProps) {
     >
       {savedPage && (
         <FabricJSCanvas
+          ref={canvasRef}
           id={"canva + " + index}
           height={getHeight()}
           width={getWidth()}

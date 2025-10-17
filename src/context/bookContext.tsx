@@ -31,6 +31,8 @@ interface BookContextType {
   setUpdatedPages: React.Dispatch<React.SetStateAction<Map<number, string>>>;
   handleSaveBook: () => Promise<void>;
   saveLoading: boolean;
+  handleAddText: () => void;
+  registerAddTextHandler: (pageIndex: number, handler: () => void) => void;
 }
 
 const BookContext = createContext<BookContextType | undefined>(undefined);
@@ -68,6 +70,9 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [updatedPages, setUpdatedPages] = useState<Map<number, string>>(
     new Map()
   );
+
+  // Store handlers for each page's addText function
+  const addTextHandlersRef = React.useRef<Map<number, () => void>>(new Map());
 
   const handleSaveBook = async () => {
     setSaveLoading(true);
@@ -143,6 +148,28 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     setFlipDirection(null);
   }, [flipDirection]);
 
+  // Register a page's addText handler
+  const registerAddTextHandler = useCallback(
+    (pageIndex: number, handler: () => void) => {
+      addTextHandlersRef.current.set(pageIndex, handler);
+    },
+    []
+  );
+
+  // Call the addText handler for the page currently in edition
+  const handleAddText = useCallback(() => {
+    if (typeof pageInEdition == "number") {
+      const handler = addTextHandlersRef.current.get(pageInEdition);
+      if (handler) {
+        handler();
+      } else {
+        console.warn(`No addText handler registered for page ${pageInEdition}`);
+      }
+    } else {
+      console.warn("No page currently in edition");
+    }
+  }, [pageInEdition]);
+
   const value: BookContextType = {
     loading,
     error,
@@ -162,6 +189,8 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     setUpdatedPages,
     handleSaveBook,
     saveLoading,
+    handleAddText,
+    registerAddTextHandler,
   };
 
   return <BookContext.Provider value={value}>{children}</BookContext.Provider>;

@@ -18,6 +18,8 @@ function App() {
     getVersoIndexFromSheetId,
     saveLoading,
     updatedPages,
+    pageInEdition,
+    handleAddText,
   } = useBook();
 
   if (loading) {
@@ -69,6 +71,14 @@ function App() {
 
       <div className="bg-white fixed top-[50px] h-[40px] w-full z-1000">
         <div className="h-full w-full overflow-visible z-50 relative flex items-center justify-end p-4 gap-4">
+          <Button
+            isDisabled={typeof pageInEdition !== "number"}
+            onClick={handleAddText}
+            variant="secondary"
+            size="sm"
+          >
+            Add Text
+          </Button>
           <Button
             isLoading={saveLoading}
             isDisabled={updatedPages.size === 0}
