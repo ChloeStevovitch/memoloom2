@@ -26,7 +26,7 @@ function Page({ className, index, visible, ...props }: PageProps) {
     setUpdatedPages,
     setPageInEdition,
     activeRectoSheet,
-    registerAddTextHandler,
+    registerHandlers,
   } = useBook();
   const { fetchPage } = usePage();
 
@@ -85,14 +85,15 @@ function Page({ className, index, visible, ...props }: PageProps) {
     );
   };
 
-  const handleAddText = () => {
-    canvasRef.current?.addText();
-  };
-
   // Register this page's addText handler in the context
   useEffect(() => {
-    registerAddTextHandler(index, handleAddText);
-  }, [index, registerAddTextHandler]);
+    registerHandlers.registerAddTextHandler(index, () =>
+      canvasRef.current?.addText()
+    );
+    registerHandlers.registerAddFullPageTextHandler(index, () =>
+      canvasRef.current?.addFullPageText()
+    );
+  }, [index, registerHandlers, canvasRef]);
 
   return (
     <div
