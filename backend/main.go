@@ -8,10 +8,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// page represents a single page with Delta content
+// page represents a single page with Canva content
 type page struct {
-	Delta string `json:"delta"`
+	Canva string `json:"canva"`
 }
+
+const canvaExample = `{"version":"6.7.1","objects":[{"fontSize":40,"fontWeight":"normal","fontFamily":"Times New Roman","fontStyle":"normal","lineHeight":1.16,"text":"test","charSpacing":0,"textAlign":"left","styles":[],"pathStartOffset":0,"pathSide":"left","pathAlign":"baseline","underline":false,"overline":false,"linethrough":false,"textBackgroundColor":"","direction":"ltr","textDecorationThickness":66.667,"minWidth":20,"splitByGrapheme":false,"type":"Textbox","version":"6.7.1","originX":"left","originY":"top","left":199.7266,"top":285.9,"width":55.5469,"height":45.2,"fill":"rgb(0,0,0)","stroke":null,"strokeWidth":1,"strokeDashArray":null,"strokeLineCap":"butt","strokeDashOffset":0,"strokeLineJoin":"miter","strokeUniform":false,"strokeMiterLimit":4,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"backgroundColor":"","fillRule":"nonzero","paintFirst":"fill","globalCompositeOperation":"source-over","skewX":0,"skewY":0}]}`
 
 // book represents a book containing multiple pages
 type book struct {
@@ -27,46 +29,46 @@ type user struct {
 
 var pages = map[int]page{
 	0: {
-		Delta: `{"ops":[{"retain":12},{"insert":"White","attributes":{"color":"#fff"}},{"delete":4}]}`,
+		Canva: canvaExample,
 	},
 	1: {
-		Delta: `{"ops":[{"insert":" "}]}`,
+		Canva: canvaExample,
 	},
 	2: {
-		Delta: `{"ops":[{"insert":"Gandalf","attributes":{"bold":true}},{"insert":" the "},{"insert":"Grey","attributes":{"color":"#ccc"}}]}`,
+		Canva: canvaExample,
 	},
 	3: {
-		Delta: `{"ops":[{"insert":"Control","attributes":{"bold":true}},{"insert":" Structures","attributes":{"color":"#ccc"}},{"insert":" page 3 sheet 1"}]}`,
+		Canva: canvaExample,
 	},
 	4: {
-		Delta: `{"ops":[{"insert":"Functions","attributes":{"bold":true}},{"insert":" page 4 sheet 2"}]}`,
+		Canva: canvaExample,
 	},
 	5: {
-		Delta: `{"ops":[{"insert":"Structs and Interfaces","attributes":{"bold":true}},{"insert":" page 5 sheet 2"}]}`,
+		Canva: canvaExample,
 	},
 	6: {
-		Delta: `{"ops":[{"insert":"Concurrency in Go","attributes":{"bold":true}},{"insert":" page 6 sheet 3"}]}`,
+		Canva: canvaExample,
 	},
 	7: {
-		Delta: `{"ops":[{"insert":"Error Handling","attributes":{"bold":true}},{"insert":" page 7 sheet 3"}]}`,
+		Canva: canvaExample,
 	},
 	8: {
-		Delta: `{"ops":[{"insert":"Standard Library","attributes":{"bold":true}},{"insert":" page 8 sheet 4"}]}`,
+		Canva: canvaExample,
 	},
 	9: {
-		Delta: `{"ops":[{"insert":"Testing in Go","attributes":{"bold":true}},{"insert":" page 9 sheet 4"}]}`,
+		Canva: canvaExample,
 	},
 	10: {
-		Delta: `{"ops":[{"insert":"Testing in Go","attributes":{"bold":true}},{"insert":" page 10 sheet 5"}]}`,
+		Canva: canvaExample,
 	},
 	11: {
-		Delta: `{"ops":[{"insert":"Building Web Applications","attributes":{"bold":true}},{"insert":" page 11 sheet 5"}]}`,
+		Canva: canvaExample,
 	},
 	12: {
-		Delta: `{"ops":[]}`,
+		Canva: canvaExample,
 	},
 	13: {
-		Delta: `{"ops":[]}`,
+		Canva: canvaExample,
 	},
 }
 

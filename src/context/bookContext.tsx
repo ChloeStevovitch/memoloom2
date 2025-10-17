@@ -8,6 +8,7 @@ import React, {
   type ReactNode,
 } from "react";
 import bookServiceHttp from "../service/bookServiceHttp";
+import pageServiceHttp from "../service/pageServiceHttp";
 
 interface BookContextType {
   bookLength: number | undefined;
@@ -26,6 +27,10 @@ interface BookContextType {
   getVersoIndexFromSheetId: (sheetId: number) => number;
   getCurrentPair: number;
   getNbSheets: (bookLength: number | undefined) => number;
+  updatedPages: Map<number, string>;
+  setUpdatedPages: React.Dispatch<React.SetStateAction<Map<number, string>>>;
+  handleSaveBook: () => Promise<void>;
+  saveLoading: boolean;
 }
 
 const BookContext = createContext<BookContextType | undefined>(undefined);
@@ -41,6 +46,7 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [flipDirection, setFlipDirection] = useState<"left" | "right" | null>(
     null
   );
+  const [saveLoading, setSaveLoading] = useState<boolean>(false);
   const [pageInEdition, setPageInEdition] = useState<number | null>(null);
   const getCurrentPair = useMemo(
     () => activeRectoSheet / 2,
@@ -59,6 +65,24 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   const getRectoIndexFromSheetId = (sheetId: number) => sheetId * 2;
   const getVersoIndexFromSheetId = (sheetId: number) => sheetId * 2 - 1;
+  const [updatedPages, setUpdatedPages] = useState<Map<number, string>>(
+    new Map()
+  );
+
+  const handleSaveBook = async () => {
+    setSaveLoading(true);
+    for (const [pageIndex, canvasData] of updatedPages) {
+      try {
+        await pageServiceHttp.updatePage(pageIndex, { canva: canvasData });
+        console.log(`Page ${pageIndex} saved successfully.`);
+        updatedPages.delete(pageIndex);
+      } catch (error) {
+        console.error(`Error saving page ${pageIndex}:`, error);
+      } finally {
+        setSaveLoading(false);
+      }
+    }
+  };
 
   const fetchBookLength = useCallback(async () => {
     try {
@@ -134,6 +158,10 @@ export const BookProvider: React.FC<BookProviderProps> = ({ children }) => {
     setFlipDirection,
     pageInEdition,
     setPageInEdition,
+    updatedPages,
+    setUpdatedPages,
+    handleSaveBook,
+    saveLoading,
   };
 
   return <BookContext.Provider value={value}>{children}</BookContext.Provider>;

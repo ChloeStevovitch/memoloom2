@@ -3,5 +3,5 @@ export interface Book {
   content: Page[];
 }
 export interface Page {
-  delta: string;
+  canva: string;
 }

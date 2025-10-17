@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
     "clsx": "^2.1.1",
+    "fabric": "^6.7.1",
     "quill-delta": "github:slab/delta#v5.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
